@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { prismaDigitalApi } from "../api/prismaDigitalApi";
-import { AddMovement } from "../components/addMovement";
 import { Header } from "../components/header";
+import { Movement } from "../components/Movement";
 import { separator } from "../utils/Text";
 
-export const Movements = () => {
+export const Movements = memo(() => {
   const { username } = useParams();
-
   const [list, setList] = useState([]);
   const [show, setShow] = useState(false);
   const [cut, setCut] = useState(true);
@@ -15,7 +14,7 @@ export const Movements = () => {
 
   useEffect(() => {
     getList();
-  }, [username]);
+  }, []);
 
   const getList = async () => {
     const { data } = await prismaDigitalApi.get(`/users/${username}/bills`);
@@ -43,7 +42,7 @@ export const Movements = () => {
 
   return (
     <div className="w-screen h-screen flex flex-col relative">
-      <AddMovement
+      <Movement
         show={show}
         setShow={setShow}
         username={username}
@@ -51,6 +50,7 @@ export const Movements = () => {
         description={description.description}
         id={description.id}
         setList={setList}
+        setDescription={setDescription}
       />
       <div className="w-full">
         <Header />
@@ -89,4 +89,4 @@ export const Movements = () => {
       </div>
     </div>
   );
-};
+});

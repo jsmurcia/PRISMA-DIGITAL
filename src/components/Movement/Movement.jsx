@@ -6,7 +6,7 @@ import { Input, InputCheck } from "../input";
 import { MessageError } from "../messageError";
 import { Modal } from "../modal/Modal";
 
-export const AddMovement = ({
+export const Movement = ({
   show,
   setShow = () => {},
   username = "",
@@ -14,8 +14,13 @@ export const AddMovement = ({
   description = false,
   id = "",
   setList,
+  setDescription = () => {},
 }) => {
-  const [data, setData] = useState("");
+  const [data, setData] = useState({
+    type: "",
+    price: "",
+    observation: "",
+  });
   const [check, setCheck] = useState("");
   const [error, setError] = useState(false);
 
@@ -24,7 +29,7 @@ export const AddMovement = ({
     setCheck(name);
   };
 
-  const onCangeValue = ({ target }) => {
+  const onChangeValue = ({ target }) => {
     const { value, name } = target;
     setData({
       ...data,
@@ -50,28 +55,31 @@ export const AddMovement = ({
       `/users/${username}/bills/${id}`
     );
     setData({
-      ...response,
+      id: response.id,
+      type: response.type,
+      price: response.value,
+      observation: response.observation,
     });
   };
 
   const register = async (e) => {
     e.preventDefault();
-    if (hasEmptyFields(data, ["observation", "type", "value"]))
+    if (hasEmptyFields(data, ["observation", "type", "price"]))
       return setError(true);
-    const { type, value, observation } = data;
+    const { type, price, observation } = data;
 
     const { data: resp } = await prismaDigitalApi.post(
       `/users/${username}/bills`,
       {
         type,
-        value,
+        value: price,
         observation,
       }
     );
     if (!!resp.id) {
       setData({
         type: "",
-        value: "",
+        price: "",
         observation: "",
       });
 
@@ -91,6 +99,19 @@ export const AddMovement = ({
     }
   };
 
+  const closeModal = (e) => {
+    e.preventDefault();
+    setShow(false);
+    setDescription({});
+    setData({
+      type: "",
+      price: "",
+      observation: "",
+    });
+  };
+
+  console.log("esta es la descripcion", description);
+
   return (
     <Modal show={show}>
       <form className="w-full p-10 h-fit">
@@ -101,9 +122,10 @@ export const AddMovement = ({
         <p className="mt-2">Descripción</p>
         <textarea
           className="border w-full border-gray-400 h-20 outline-none p-4"
-          onChange={onCangeValue}
+          onChange={onChangeValue}
           name="observation"
           value={data.observation}
+          readOnly={description ? true : false}
         />
         {error && !data.observation ? <MessageError /> : ""}
         <p>Tipo de Movimiento</p>
@@ -122,23 +144,23 @@ export const AddMovement = ({
         {error && !data.type ? <MessageError /> : ""}
         <Input
           label="Valor"
-          onChange={onCangeValue}
-          name="value"
+          onChange={onChangeValue}
+          name="price"
           type="number"
-          value={data.value}
-          error={error && !data.value}
-          messageError='la información del campo es requerida'
+          value={data.price}
+          readOnly={description ? true : false}
+          error={error && !data.price}
+          messageError="la información del campo es requerida"
         />
         <div className="flex mt-10 justify-around">
           <Button
             text={description ? "Eliminar" : "Registrar"}
-            // onClick={register}
             onClick={description ? deleteMovement : register}
           />
           <Button
             text={"cancelar"}
             classButton="text-purple font-bold"
-            onClick={() => setShow(!show)}
+            onClick={(e) => closeModal(e)}
           />
         </div>
       </form>
